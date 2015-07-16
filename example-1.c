@@ -38,7 +38,8 @@ enum
 	COL_AWARDS,
 	COL_SCHOLARSHIPS,
 	COL_PUBLICATIONS,
-	COL_DESIGNATIONS
+	COL_DESIGNATIONS,
+	COL_EXPERIENCE
 };
 typedef struct telephone
 {
@@ -60,6 +61,15 @@ typedef struct education
 	int day;
 	struct education *nxtptr;
 }EDUCATION;
+
+typedef struct experience
+{
+	char *job_title;
+	int year;
+	int month;
+	int day;
+	struct experience *nxtptr;
+}EXPERIENCE;
 
 // hackish?
 GtkWidget *viewtext;
@@ -370,6 +380,26 @@ void impresume_list_education_new(GtkTreeStore *treemodellist, GtkWidget *dialog
 				4, dialog,
                 -1);
 	printf("OK education");
+}
+void impresume_list_experience_new(GtkTreeStore *treemodellist, GtkWidget *dialog)
+{
+	GtkTreeIter iter;
+
+	EXPERIENCE *experience = malloc(sizeof(EXPERIENCE));
+		experience->year = 2004;
+		experience->month = 12;
+		experience->day = 31;
+		experience->job_title = "Default Experience";
+
+	gtk_tree_store_append (treemodellist, &iter, NULL);
+	gtk_tree_store_set (treemodellist, &iter,
+				0, NULL,
+                1, experience->job_title,
+				2, 700,			
+				3, experience,
+				4, dialog,
+                -1);
+	printf("OK experience\n");
 }
 void createstatusbar(GtkWidget *view, GtkWidget **statusbar)
 {
@@ -689,6 +719,8 @@ gtk_tree_store_set (treemodel, &iter,
                           -1);
 
 mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+impresume_list_experience_new(mainmodellist, dialog);
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "battery-low",
@@ -698,7 +730,7 @@ gtk_tree_store_set (treemodel, &iter2,
 			4, gsensitive,
 			5, "32",
 			6, list,
-			7, COL_HEADER,
+			7, COL_EXPERIENCE,
 			8, mainmodellist,
                           -1);
 
