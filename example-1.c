@@ -21,7 +21,7 @@
 #include <libxml/debugXML.h>
 #include <libxml/HTMLtree.h>
 #include <libxml/xmlIO.h>
-#include <libxml/DOCBparser.h>
+//#include <libxml/DOCBparser.h>
 #include <libxml/xinclude.h>
 #include <libxml/catalog.h>
 #include <libxslt/xslt.h>
@@ -208,46 +208,59 @@ tree_selection_changed_cb (GtkTreeSelection *selection, gpointer data)
         {
 		//this should probably get an ID or something...
                 gtk_tree_model_get (model, &iter, 8, &listmodel, -1);
-				printf ("Get listmodel: %d\n", listmodel);
+				//printf ("Get listmodel: %d\n", listmodel);
                 gtk_tree_model_get (model, &iter, 6, &listview, -1);
-				printf ("Get listview: %d\n", listview);
+				//printf ("Get listview: %d\n", (listview));
 
 				gtk_tree_view_set_model (GTK_TREE_VIEW (listview), GTK_TREE_MODEL (listmodel));
-
-				printf("OK Set model.\n");
-				int typething;
-                gtk_tree_model_get (model, &iter, 7, &typething, -1);
-				switch (typething)
-				{
-					case COL_EDUCATION:
-					{
-						g_print("Global selection now must become EDUCATION.\n");
-						break;
-					}
-					case COL_SCHOLARSHIPS:
-					{
-						g_print("Global selection now must become SCHOLARSHIPS.\n");
-						break;
-					}
-					default:
-					{
-						g_print("OK, nothing. %d.\n", typething);
-						break;
-					}
-				}
-				//clear main tree
-				//fill main tree
-				//gtk_tree_view_set_model //now I need to pass in a model.
-
-		//the id should correspond to a model, which should be applied to the main tree.
-
-		//alternatively, if the view is different, you could associate a new view. But I imagine
-		//you'd still need to load the data...although this could occur at start time, not run time.
-		// so...if I load a resume file, I could populate all the models, and then display the various
-		// "forms" when each was chosen from the sidebar
-
                 
         }
+}
+static void show_education_dialog_cb (GtkWidget *widget, gpointer   user_data)
+{
+	printf ("Me show\n");
+	GtkWidget *content_area = gtk_dialog_get_content_area (GTK_DIALOG (widget));
+
+	GtkEntry *user_entry = g_object_get_data (G_OBJECT (content_area), "uname1");
+	GtkEntry *pword_entry = g_object_get_data (G_OBJECT (content_area), "pword1");
+
+	gtk_entry_set_text(GTK_ENTRY (user_entry), "Not Set");
+	gtk_entry_set_text(GTK_ENTRY (pword_entry), "Not Set");
+
+	EDUCATION *medu;
+	medu = user_data;
+	gtk_entry_set_text(GTK_ENTRY (pword_entry), medu->institution_name);
+
+
+}
+static void response_education_dialog_cb (GtkDialog *dialog, gint response_id, gpointer user_data)
+{
+	printf ("Me response\n");
+	switch (response_id)
+    {
+		case GTK_RESPONSE_ACCEPT:
+		{
+			//Need to extract the data back out of the dialog.
+			GtkWidget *content_area = gtk_dialog_get_content_area (dialog);
+			GtkEntry *user_entry = g_object_get_data (G_OBJECT (content_area), "uname1");
+			GtkEntry *pword_entry = g_object_get_data (G_OBJECT (content_area), "pword1");
+
+			char *szBuffer =  malloc(sizeof(char) * 255); 
+			strcpy(szBuffer,gtk_entry_get_text(GTK_ENTRY (pword_entry)));
+
+			// Need to assign it to the original data structure (or create new)
+
+			EDUCATION *medu;
+			medu = user_data; 
+			medu->institution_name = szBuffer;
+
+			break;
+		}
+		default:
+         printf("Cancelled\n");
+         break;
+    }
+
 }
 static void view_onRowActivated(GtkTreeView        *treeview, GtkTreePath        *path,  GtkTreeViewColumn  *col,  gpointer            userdata)
 {
@@ -262,7 +275,7 @@ static void view_onRowActivated(GtkTreeView        *treeview, GtkTreePath       
 		2. Display the dialog
 		3. Update the values of the data structure based on dialog input
 */
-printf("I'm here %s", "here");
+printf("I'm here %s\n", "here");
 
 	GtkTreeModel *model;
 	GtkTreeIter iter;
@@ -270,37 +283,51 @@ printf("I'm here %s", "here");
 	gtk_tree_model_get_iter(model, &iter, path);
 
 	GtkDialog *dialog2;
-	EDUCATION *education;
-	//Get Education
-	gtk_tree_model_get(model, &iter, 3, &education, -1);
+
+	// data_strcuture will hold a pointer to things like education, experience, etc.
+	gpointer *data_structure;
+	gpointer *show_cb;
+	gpointer *response_cb;
+
+	//Get data_strcuture
+	gtk_tree_model_get(model, &iter, 3, &data_structure, -1);
 	// dialog2 is a pointer to a dialog.
 	gtk_tree_model_get(model, &iter, 4, &dialog2, -1);
 
-	GtkWidget *content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog2));
+	//show_cb is a pointer to a show callback for the dialog
+	gtk_tree_model_get(model, &iter, 5, &show_cb, -1);
 
-	GtkEntry *user_entry = g_object_get_data (G_OBJECT (content_area), "uname1");
-	GtkEntry *pword_entry = g_object_get_data (G_OBJECT (content_area), "pword1");
+	//response_cb is a pointer to a show callback for the dialog
+	gtk_tree_model_get(model, &iter, 6, &response_cb, -1);
 
-	gtk_entry_set_text(GTK_ENTRY (user_entry), "Not Set");
-	gtk_entry_set_text(GTK_ENTRY (pword_entry), "Not Set");
+	printf("Got data %p\n", data_structure);
+	printf("Got show callback %p\n", show_cb);
+	printf("Got response callback %p\n", response_cb);
 
-	gtk_entry_set_text(GTK_ENTRY (pword_entry), education->institution_name);
+	
+
+	/*
+		What if I passed a function pointer during model initialization
+		Then I connect the show signal to that pointer
+		Then in that callback, I add all the stuff?
+
+		Note: hard-coding education should change to gpointer.
+
+		TODO: try to add g_type_pointers to the model, associate to these types of functions, and see if they get called.
+
+		//This handler will take the values from the object pointed to by edugpointer and fill in the dialog (context specific)
+		g_signal_connect(G_OBJECT(dialog2), "show", G_CALLBACK(somefuncpointer), edugpointer);
+
+		// This handler will take the values from the dialog, create a copy of the object, set the pointer to the new object and kill the old one.
+		g_signal_connect(G_OBJECT(dialog2), "response", G_CALLBACK(somefuncpointer2), edugpointer);
+	*/
+	gint show_handler_id = g_signal_connect(G_OBJECT(dialog2), "show", G_CALLBACK(show_cb), data_structure);
+	gint response_handler_id = g_signal_connect(G_OBJECT(dialog2), "response", G_CALLBACK(response_cb), data_structure);
 	gint result = gtk_dialog_run (GTK_DIALOG (dialog2));
 
-	switch (result)
-    {
-		case GTK_RESPONSE_ACCEPT:
-		{
-			char *szBuffer =  malloc(sizeof(char) * 255); 
-			strcpy(szBuffer,gtk_entry_get_text(GTK_ENTRY (pword_entry))); 
-			education->institution_name = szBuffer;
-			break;
-		}
-		default:
-         printf("Cancelled");
-         break;
-    }
- // gtk_widget_destroy (dialog);
+	g_signal_handler_disconnect (G_OBJECT(dialog2), show_handler_id);
+	g_signal_handler_disconnect (G_OBJECT(dialog2), response_handler_id);
+
 	gtk_widget_hide(GTK_WIDGET(dialog2));
 
 }
@@ -378,6 +405,8 @@ void impresume_list_education_new(GtkTreeStore *treemodellist, GtkWidget *dialog
 				2, 700,			
 				3, education,
 				4, dialog,
+				5, show_education_dialog_cb,
+				6, response_education_dialog_cb,
                 -1);
 	printf("OK education");
 }
@@ -398,6 +427,8 @@ void impresume_list_experience_new(GtkTreeStore *treemodellist, GtkWidget *dialo
 				2, 700,			
 				3, experience,
 				4, dialog,
+				5, show_education_dialog_cb,
+				6, response_education_dialog_cb,
                 -1);
 	printf("OK experience\n");
 }
@@ -460,6 +491,20 @@ webkit_print_operation_print (wpint);
         xsltCleanupGlobals();
         xmlCleanupParser();
 }
+
+GtkTreeStore *initialize_standard_model()
+{
+	return gtk_tree_store_new(7,
+			G_TYPE_STRING,
+			G_TYPE_STRING,
+			G_TYPE_INT,
+			G_TYPE_POINTER, //storage object
+			G_TYPE_POINTER, //dialog
+			G_TYPE_POINTER, //dialog show callback function
+			G_TYPE_POINTER //dialog response callback function
+			);
+}
+
 static void
 activate (GtkApplication *app,
           gpointer        user_data)
@@ -631,10 +676,13 @@ gtk_tree_store_set (treemodel, &iter,
 			8, NULL,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+// Create the main list data model store
+mainmodellist = initialize_standard_model();
 
+// Add content spectific stuff to it
 impresume_list_education_new(mainmodellist, dialog);
 
+// Now add to the main navigation panel
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "go-top",
@@ -648,7 +696,7 @@ gtk_tree_store_set (treemodel, &iter2,
 			8, mainmodellist,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "help-about",
@@ -662,7 +710,8 @@ gtk_tree_store_set (treemodel, &iter2,
 			8, mainmodellist,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "mail-message-new",
@@ -676,7 +725,8 @@ gtk_tree_store_set (treemodel, &iter2,
 			8, mainmodellist,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "emblem-documents",
@@ -690,7 +740,8 @@ gtk_tree_store_set (treemodel, &iter2,
 			8, mainmodellist,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "emblem-important",
@@ -718,7 +769,8 @@ gtk_tree_store_set (treemodel, &iter,
 			8, NULL,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 impresume_list_experience_new(mainmodellist, dialog);
 
 gtk_tree_store_append (treemodel, &iter2, &iter);
@@ -734,7 +786,8 @@ gtk_tree_store_set (treemodel, &iter2,
 			8, mainmodellist,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "image-loading",
@@ -748,7 +801,8 @@ gtk_tree_store_set (treemodel, &iter2,
 			8, mainmodellist,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "mail-replied",
@@ -762,7 +816,8 @@ gtk_tree_store_set (treemodel, &iter2,
 			8, mainmodellist,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "network-transmit",
@@ -789,7 +844,8 @@ gtk_tree_store_set (treemodel, &iter,
 			8, NULL,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "battery-low",
@@ -803,7 +859,8 @@ gtk_tree_store_set (treemodel, &iter2,
 			8, mainmodellist,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "image-loading",
@@ -817,7 +874,8 @@ gtk_tree_store_set (treemodel, &iter2,
 			8, mainmodellist,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "mail-replied",
@@ -831,7 +889,8 @@ gtk_tree_store_set (treemodel, &iter2,
 			8, mainmodellist,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "network-transmit",
@@ -845,7 +904,8 @@ gtk_tree_store_set (treemodel, &iter2,
 			8, mainmodellist,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "network-transmit",
@@ -874,7 +934,8 @@ gtk_tree_store_set (treemodel, &iter,
                           -1);
 
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "battery-low",
@@ -888,7 +949,8 @@ gtk_tree_store_set (treemodel, &iter2,
 			8, mainmodellist,
                           -1);
 
-mainmodellist = gtk_tree_store_new(5, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_POINTER, G_TYPE_POINTER);
+mainmodellist = initialize_standard_model();
+
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "image-loading",
