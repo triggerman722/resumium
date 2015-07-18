@@ -203,24 +203,23 @@ tree_selection_changed_cb (GtkTreeSelection *selection, gpointer data)
         GtkTreeModel *model, *listmodel;
 		GtkTreeView *listview;
         
-
         if (gtk_tree_selection_get_selected (selection, &model, &iter))
         {
-		//this should probably get an ID or something...
+				//this should probably get an ID or something...
                 gtk_tree_model_get (model, &iter, 8, &listmodel, -1);
-				//printf ("Get listmodel: %d\n", listmodel);
                 gtk_tree_model_get (model, &iter, 6, &listview, -1);
-				//printf ("Get listview: %d\n", (listview));
 
 				gtk_tree_view_set_model (GTK_TREE_VIEW (listview), GTK_TREE_MODEL (listmodel));
-                
         }
 }
+// The callback (and others like it) will need to be data specific. So this will
+// deal with education, another with experience, etc. Think of this as handling data output.
 static void show_education_dialog_cb (GtkWidget *widget, gpointer   user_data)
 {
 	printf ("Me show\n");
 	GtkWidget *content_area = gtk_dialog_get_content_area (GTK_DIALOG (widget));
 
+	// Because I am in a data specific handler, I can make assumptions about the dialog (such as: its the education dialog)
 	GtkEntry *user_entry = g_object_get_data (G_OBJECT (content_area), "uname1");
 	GtkEntry *pword_entry = g_object_get_data (G_OBJECT (content_area), "pword1");
 
@@ -230,8 +229,6 @@ static void show_education_dialog_cb (GtkWidget *widget, gpointer   user_data)
 	EDUCATION *medu;
 	medu = user_data;
 	gtk_entry_set_text(GTK_ENTRY (pword_entry), medu->institution_name);
-
-
 }
 static void response_education_dialog_cb (GtkDialog *dialog, gint response_id, gpointer user_data)
 {
@@ -262,20 +259,54 @@ static void response_education_dialog_cb (GtkDialog *dialog, gint response_id, g
     }
 
 }
+
+static void show_experience_dialog_cb (GtkWidget *widget, gpointer   user_data)
+{
+	printf ("Me exp show\n");
+	GtkWidget *content_area = gtk_dialog_get_content_area (GTK_DIALOG (widget));
+
+	GtkEntry *user_entry = g_object_get_data (G_OBJECT (content_area), "uname1");
+	GtkEntry *pword_entry = g_object_get_data (G_OBJECT (content_area), "pword1");
+
+	gtk_entry_set_text(GTK_ENTRY (user_entry), "Not Set");
+	gtk_entry_set_text(GTK_ENTRY (pword_entry), "Not Set");
+
+	EXPERIENCE *medu;
+	medu = user_data;
+	gtk_entry_set_text(GTK_ENTRY (pword_entry), medu->job_title);
+}
+static void response_experience_dialog_cb (GtkDialog *dialog, gint response_id, gpointer user_data)
+{
+	printf ("Me exp response\n");
+	switch (response_id)
+    {
+		case GTK_RESPONSE_ACCEPT:
+		{
+			//Need to extract the data back out of the dialog.
+			GtkWidget *content_area = gtk_dialog_get_content_area (dialog);
+			GtkEntry *user_entry = g_object_get_data (G_OBJECT (content_area), "uname1");
+			GtkEntry *pword_entry = g_object_get_data (G_OBJECT (content_area), "pword1");
+
+			char *szBuffer =  malloc(sizeof(char) * 255); 
+			strcpy(szBuffer,gtk_entry_get_text(GTK_ENTRY (pword_entry)));
+
+			// Need to assign it to the original data structure (or create new)
+
+			EXPERIENCE *medu;
+			medu = user_data; 
+			medu->job_title = szBuffer;
+
+			break;
+		}
+		default:
+         printf("Cancelled\n");
+         break;
+    }
+
+}
+
 static void view_onRowActivated(GtkTreeView        *treeview, GtkTreePath        *path,  GtkTreeViewColumn  *col,  gpointer            userdata)
 {
-//do I care what I get back here? I'm just adding it to the grid.
-
-/*
-	For each row in the grid, I have a pointer to its dialog box (which was created during
-	the initialization of the program).
-	I also have a pointer to the data structure that corresponds to the row
-	So ultimately, I need to:
-		1. Apply the values of the data structure to the dialog
-		2. Display the dialog
-		3. Update the values of the data structure based on dialog input
-*/
-printf("I'm here %s\n", "here");
 
 	GtkTreeModel *model;
 	GtkTreeIter iter;
@@ -286,41 +317,27 @@ printf("I'm here %s\n", "here");
 
 	// data_strcuture will hold a pointer to things like education, experience, etc.
 	gpointer *data_structure;
+
+	// these pointers are to call back functions for each of the show and response signals.
 	gpointer *show_cb;
 	gpointer *response_cb;
 
 	//Get data_strcuture
 	gtk_tree_model_get(model, &iter, 3, &data_structure, -1);
+
 	// dialog2 is a pointer to a dialog.
 	gtk_tree_model_get(model, &iter, 4, &dialog2, -1);
 
 	//show_cb is a pointer to a show callback for the dialog
 	gtk_tree_model_get(model, &iter, 5, &show_cb, -1);
 
-	//response_cb is a pointer to a show callback for the dialog
+	//response_cb is a pointer to a response callback for the dialog
 	gtk_tree_model_get(model, &iter, 6, &response_cb, -1);
 
 	printf("Got data %p\n", data_structure);
 	printf("Got show callback %p\n", show_cb);
 	printf("Got response callback %p\n", response_cb);
 
-	
-
-	/*
-		What if I passed a function pointer during model initialization
-		Then I connect the show signal to that pointer
-		Then in that callback, I add all the stuff?
-
-		Note: hard-coding education should change to gpointer.
-
-		TODO: try to add g_type_pointers to the model, associate to these types of functions, and see if they get called.
-
-		//This handler will take the values from the object pointed to by edugpointer and fill in the dialog (context specific)
-		g_signal_connect(G_OBJECT(dialog2), "show", G_CALLBACK(somefuncpointer), edugpointer);
-
-		// This handler will take the values from the dialog, create a copy of the object, set the pointer to the new object and kill the old one.
-		g_signal_connect(G_OBJECT(dialog2), "response", G_CALLBACK(somefuncpointer2), edugpointer);
-	*/
 	gint show_handler_id = g_signal_connect(G_OBJECT(dialog2), "show", G_CALLBACK(show_cb), data_structure);
 	gint response_handler_id = g_signal_connect(G_OBJECT(dialog2), "response", G_CALLBACK(response_cb), data_structure);
 	gint result = gtk_dialog_run (GTK_DIALOG (dialog2));
@@ -331,32 +348,7 @@ printf("I'm here %s\n", "here");
 	gtk_widget_hide(GTK_WIDGET(dialog2));
 
 }
-void add_new()
-{
-/*
-EDUCATION *education2 = malloc(sizeof(EDUCATION));
-			education2->year = 2004;
-			education2->month = 12;
-			education2->day = 31;
 
-			char *szBuffer =  malloc(sizeof(char) * 255); 
-			strcpy(szBuffer,gtk_entry_get_text(GTK_ENTRY (pword_entry))); 
-			education2->institution_name = szBuffer;
-
-			GtkTreeIter iter;
-			GtkTreeModel *model;
-
-			gtk_tree_store_append (treemodellist, &iter, NULL);
-			gtk_tree_store_set (treemodellist, &iter,
-						0, NULL,
-						              1, "ACADEMICS",
-						2, 700,		
-						3, education2,
-						4, dialog2,	
-						              -1);
-			gtk_tree_view_set_model (GTK_TREE_VIEW (list), GTK_TREE_MODEL (treemodellist));
-*/
-}
 void setuplist(GtkWidget **list)
 {
 
@@ -427,8 +419,8 @@ void impresume_list_experience_new(GtkTreeStore *treemodellist, GtkWidget *dialo
 				2, 700,			
 				3, experience,
 				4, dialog,
-				5, show_education_dialog_cb,
-				6, response_education_dialog_cb,
+				5, show_experience_dialog_cb,
+				6, response_experience_dialog_cb,
                 -1);
 	printf("OK experience\n");
 }
