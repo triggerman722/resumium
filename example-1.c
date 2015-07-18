@@ -338,6 +338,15 @@ static void view_onRowActivated(GtkTreeView        *treeview, GtkTreePath       
 	printf("Got show callback %p\n", show_cb);
 	printf("Got response callback %p\n", response_cb);
 
+	// So I could change the following to a static call back, set only on init.
+	// then I would need only to set the data structure to the dialog.
+	// g_object_set_data(G_OBJECT(dialog), "data_structure", data_structure);
+	// later (in the callback) I could get the structure via: 
+	// gpointer data_structure = g_object_get_data (G_OBJECT (dialog), "data_structure");
+	// this approach would ease the model, and would make a future glade based ui implmentation seem more "normal"
+	// because you would connect the signals via the builder.
+	// also, this would get rid of a ton of code shit.
+
 	gint show_handler_id = g_signal_connect(G_OBJECT(dialog2), "show", G_CALLBACK(show_cb), data_structure);
 	gint response_handler_id = g_signal_connect(G_OBJECT(dialog2), "response", G_CALLBACK(response_cb), data_structure);
 	gint result = gtk_dialog_run (GTK_DIALOG (dialog2));
