@@ -71,6 +71,28 @@ typedef struct experience
 	struct experience *nxtptr;
 }EXPERIENCE;
 
+typedef struct designation
+{
+	char *name;
+	// the part you put after your name, such as Benny Magnum, PI
+	char *postnominal;
+	char *grantingagency;
+	int year;
+	int month;
+	int day;
+} DESIGNATION;
+
+typedef struct award
+{
+	int year;
+	int month;
+	int day;
+	char *name;
+char *postnominal;
+	char *grantingagency;
+	float amount;
+		
+} AWARD;
 // hackish?
 GtkWidget *viewtext;
 WebKitWebView *webView;
@@ -178,6 +200,134 @@ GtkWidget *dialog_education_new(GtkWidget *parent)
 
 	return newdialog;
 }
+GtkWidget *dialog_designation_new(GtkWidget *parent)
+{
+	GtkWidget *content_area;
+	GtkWidget *grid;
+	GtkWidget *label, *designation_name_entry, *designation_postnominal_entry, *designation_grantingagency_entry;
+	GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+	GtkWidget *newdialog;
+	newdialog = gtk_dialog_new_with_buttons ("Professional Designations",
+                                      	GTK_WINDOW(parent),
+                                       flags,
+                                       "_OK",
+                                       GTK_RESPONSE_ACCEPT,
+                                       "_Cancel",
+                                       GTK_RESPONSE_REJECT,
+                                       NULL);
+	content_area = gtk_dialog_get_content_area (GTK_DIALOG (newdialog));
+	grid = gtk_grid_new ();
+	g_object_set (grid, "margin", 6, NULL);
+	gtk_grid_set_column_spacing (GTK_GRID (grid), 6);
+	gtk_grid_set_row_spacing (GTK_GRID (grid), 4);
+	gtk_box_pack_start (GTK_BOX (content_area), grid, TRUE, TRUE, 0);
+	gtk_widget_show (grid);
+	label = gtk_label_new ("Name:");
+	gtk_widget_set_halign (label, GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (grid), label, 0, 0, 1, 1);
+	designation_name_entry = gtk_entry_new ();
+	gtk_widget_set_hexpand (designation_name_entry, TRUE);
+	gtk_entry_set_icon_from_icon_name (GTK_ENTRY(designation_name_entry), GTK_ENTRY_ICON_PRIMARY, "mail-message-new");
+	gtk_grid_attach (GTK_GRID (grid), designation_name_entry,
+                   1, 0, 1, 1);
+ 
+	label = gtk_label_new ("Post Nominal:");
+	gtk_widget_set_halign (label, GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (grid), label, 0, 1, 1, 1);
+	designation_postnominal_entry = gtk_entry_new ();
+	
+	gtk_widget_set_hexpand (designation_postnominal_entry, TRUE);
+
+	gtk_entry_set_activates_default (GTK_ENTRY (designation_postnominal_entry),
+                                   TRUE);
+	gtk_grid_attach (GTK_GRID (grid), designation_postnominal_entry,
+		           1, 1, 1, 1);
+
+
+	label = gtk_label_new ("Granting Agency:");
+	gtk_widget_set_halign (label, GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (grid), label, 0, 2, 1, 1);
+	designation_grantingagency_entry = gtk_entry_new ();
+	
+	gtk_widget_set_hexpand (designation_grantingagency_entry, TRUE);
+
+	gtk_entry_set_activates_default (GTK_ENTRY (designation_grantingagency_entry),
+                                   TRUE);
+	gtk_grid_attach (GTK_GRID (grid), designation_grantingagency_entry,
+		           1, 2, 1, 1);
+
+	g_object_set_data(G_OBJECT(content_area), "designation_name_entry", designation_name_entry);
+	g_object_set_data(G_OBJECT(content_area), "designation_postnominal_entry", designation_postnominal_entry);
+	g_object_set_data(G_OBJECT(content_area), "designation_grantingagency_entry", designation_grantingagency_entry);
+
+	gtk_widget_show_all (content_area);
+
+	return newdialog;
+}
+GtkWidget *dialog_award_new(GtkWidget *parent)
+{
+	GtkWidget *content_area;
+	GtkWidget *grid;
+	GtkWidget *label, *award_name_entry, *award_postnominal_entry, *award_grantingagency_entry;
+	GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+	GtkWidget *newdialog;
+	newdialog = gtk_dialog_new_with_buttons ("Professional awards",
+                                      	GTK_WINDOW(parent),
+                                       flags,
+                                       "_OK",
+                                       GTK_RESPONSE_ACCEPT,
+                                       "_Cancel",
+                                       GTK_RESPONSE_REJECT,
+                                       NULL);
+	content_area = gtk_dialog_get_content_area (GTK_DIALOG (newdialog));
+	grid = gtk_grid_new ();
+	g_object_set (grid, "margin", 6, NULL);
+	gtk_grid_set_column_spacing (GTK_GRID (grid), 6);
+	gtk_grid_set_row_spacing (GTK_GRID (grid), 4);
+	gtk_box_pack_start (GTK_BOX (content_area), grid, TRUE, TRUE, 0);
+	gtk_widget_show (grid);
+	label = gtk_label_new ("Name:");
+	gtk_widget_set_halign (label, GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (grid), label, 0, 0, 1, 1);
+	award_name_entry = gtk_entry_new ();
+	gtk_widget_set_hexpand (award_name_entry, TRUE);
+	gtk_entry_set_icon_from_icon_name (GTK_ENTRY(award_name_entry), GTK_ENTRY_ICON_PRIMARY, "mail-message-new");
+	gtk_grid_attach (GTK_GRID (grid), award_name_entry,
+                   1, 0, 1, 1);
+ 
+	label = gtk_label_new ("Post Nominal:");
+	gtk_widget_set_halign (label, GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (grid), label, 0, 1, 1, 1);
+	award_postnominal_entry = gtk_entry_new ();
+	
+	gtk_widget_set_hexpand (award_postnominal_entry, TRUE);
+
+	gtk_entry_set_activates_default (GTK_ENTRY (award_postnominal_entry),
+                                   TRUE);
+	gtk_grid_attach (GTK_GRID (grid), award_postnominal_entry,
+		           1, 1, 1, 1);
+
+
+	label = gtk_label_new ("Granting Agency:");
+	gtk_widget_set_halign (label, GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (grid), label, 0, 2, 1, 1);
+	award_grantingagency_entry = gtk_entry_new ();
+	
+	gtk_widget_set_hexpand (award_grantingagency_entry, TRUE);
+
+	gtk_entry_set_activates_default (GTK_ENTRY (award_grantingagency_entry),
+                                   TRUE);
+	gtk_grid_attach (GTK_GRID (grid), award_grantingagency_entry,
+		           1, 2, 1, 1);
+
+	g_object_set_data(G_OBJECT(content_area), "award_name_entry", award_name_entry);
+	g_object_set_data(G_OBJECT(content_area), "award_postnominal_entry", award_postnominal_entry);
+	g_object_set_data(G_OBJECT(content_area), "award_grantingagency_entry", award_grantingagency_entry);
+
+	gtk_widget_show_all (content_area);
+
+	return newdialog;
+}
 gboolean treeselectionfunction (GtkTreeSelection *selection,
                          GtkTreeModel *model,
                          GtkTreePath *path,
@@ -222,9 +372,6 @@ static void show_education_dialog_cb (GtkWidget *widget, gpointer   user_data)
 	// Because I am in a data specific handler, I can make assumptions about the dialog (such as: its the education dialog)
 	GtkEntry *user_entry = g_object_get_data (G_OBJECT (content_area), "uname1");
 	GtkEntry *pword_entry = g_object_get_data (G_OBJECT (content_area), "pword1");
-
-	gtk_entry_set_text(GTK_ENTRY (user_entry), "Not Set");
-	gtk_entry_set_text(GTK_ENTRY (pword_entry), "Not Set");
 
 	EDUCATION *medu;
 	medu = user_data;
@@ -295,6 +442,123 @@ static void response_experience_dialog_cb (GtkDialog *dialog, gint response_id, 
 			EXPERIENCE *medu;
 			medu = user_data; 
 			medu->job_title = szBuffer;
+
+			break;
+		}
+		default:
+         printf("Cancelled\n");
+         break;
+    }
+
+}
+static void show_designation_dialog_cb (GtkWidget *widget, gpointer   user_data)
+{
+	printf ("Me show\n");
+	GtkWidget *content_area = gtk_dialog_get_content_area (GTK_DIALOG (widget));
+
+	// Because I am in a data specific handler, I can make assumptions about the dialog (such as: its the education dialog)
+	GtkEntry *designation_name_entry = g_object_get_data (G_OBJECT (content_area), "designation_name_entry");
+	GtkEntry *designation_postnominal_entry = g_object_get_data (G_OBJECT (content_area), "designation_postnominal_entry");
+	GtkEntry *designation_grantingagency_entry = g_object_get_data (G_OBJECT (content_area), "designation_grantingagency_entry");
+
+	DESIGNATION *user_data_set;
+	user_data_set = user_data;
+	gtk_entry_set_text(GTK_ENTRY (designation_name_entry), user_data_set->name);
+	gtk_entry_set_text(GTK_ENTRY (designation_postnominal_entry), user_data_set->postnominal);
+	gtk_entry_set_text(GTK_ENTRY (designation_grantingagency_entry), user_data_set->grantingagency);
+
+}
+static void show_award_dialog_cb (GtkWidget *widget, gpointer   user_data)
+{
+	printf ("Me show\n");
+	GtkWidget *content_area = gtk_dialog_get_content_area (GTK_DIALOG (widget));
+
+	// Because I am in a data specific handler, I can make assumptions about the dialog (such as: its the education dialog)
+	GtkEntry *award_name_entry = g_object_get_data (G_OBJECT (content_area), "award_name_entry");
+	GtkEntry *award_postnominal_entry = g_object_get_data (G_OBJECT (content_area), "award_postnominal_entry");
+	GtkEntry *award_grantingagency_entry = g_object_get_data (G_OBJECT (content_area), "award_grantingagency_entry");
+
+	AWARD *user_data_set;
+	user_data_set = user_data;
+	gtk_entry_set_text(GTK_ENTRY (award_name_entry), user_data_set->name);
+	gtk_entry_set_text(GTK_ENTRY (award_postnominal_entry), user_data_set->postnominal);
+	gtk_entry_set_text(GTK_ENTRY (award_grantingagency_entry), user_data_set->grantingagency);
+
+}
+static void response_award_dialog_cb (GtkDialog *dialog, gint response_id, gpointer user_data)
+{
+	printf ("Me response\n");
+	switch (response_id)
+    {
+		case GTK_RESPONSE_ACCEPT:
+		{
+			//Need to extract the data back out of the dialog.
+			GtkWidget *content_area = gtk_dialog_get_content_area (dialog);
+			GtkEntry *award_name_entry = g_object_get_data (G_OBJECT (content_area), "award_name_entry");
+			GtkEntry *award_postnominal_entry = g_object_get_data (G_OBJECT (content_area), "award_postnominal_entry");
+			GtkEntry *award_grantingagency_entry = g_object_get_data (G_OBJECT (content_area), "award_grantingagency_entry");
+
+			AWARD *medu;
+			medu = user_data; 
+
+			char *szBuffer =  malloc(sizeof(char) * 255); 
+			strcpy(szBuffer,gtk_entry_get_text(GTK_ENTRY (award_name_entry)));
+			// Need to assign it to the original data structure (or create new)
+			medu->name = szBuffer;
+
+			char *szBuffer2 =  malloc(sizeof(char) * 255); 
+			strcpy(szBuffer2,gtk_entry_get_text(GTK_ENTRY (award_postnominal_entry)));
+			// Need to assign it to the original data structure (or create new)
+			medu->postnominal = szBuffer2;
+
+			char *szBuffer3 =  malloc(sizeof(char) * 255); 
+			strcpy(szBuffer3,gtk_entry_get_text(GTK_ENTRY (award_grantingagency_entry)));
+			// Need to assign it to the original data structure (or create new)
+			medu->grantingagency = szBuffer3;
+
+			//TODO: Dates
+
+			break;
+		}
+		default:
+         printf("Cancelled\n");
+         break;
+    }
+
+}
+
+static void response_designation_dialog_cb (GtkDialog *dialog, gint response_id, gpointer user_data)
+{
+	printf ("Me response\n");
+	switch (response_id)
+    {
+		case GTK_RESPONSE_ACCEPT:
+		{
+			//Need to extract the data back out of the dialog.
+			GtkWidget *content_area = gtk_dialog_get_content_area (dialog);
+			GtkEntry *designation_name_entry = g_object_get_data (G_OBJECT (content_area), "designation_name_entry");
+			GtkEntry *designation_postnominal_entry = g_object_get_data (G_OBJECT (content_area), "designation_postnominal_entry");
+			GtkEntry *designation_grantingagency_entry = g_object_get_data (G_OBJECT (content_area), "designation_grantingagency_entry");
+
+			DESIGNATION *medu;
+			medu = user_data; 
+
+			char *szBuffer =  malloc(sizeof(char) * 255); 
+			strcpy(szBuffer,gtk_entry_get_text(GTK_ENTRY (designation_name_entry)));
+			// Need to assign it to the original data structure (or create new)
+			medu->name = szBuffer;
+
+			char *szBuffer2 =  malloc(sizeof(char) * 255); 
+			strcpy(szBuffer2,gtk_entry_get_text(GTK_ENTRY (designation_postnominal_entry)));
+			// Need to assign it to the original data structure (or create new)
+			medu->postnominal = szBuffer2;
+
+			char *szBuffer3 =  malloc(sizeof(char) * 255); 
+			strcpy(szBuffer3,gtk_entry_get_text(GTK_ENTRY (designation_grantingagency_entry)));
+			// Need to assign it to the original data structure (or create new)
+			medu->grantingagency = szBuffer3;
+
+			//TODO: Dates
 
 			break;
 		}
@@ -432,6 +696,54 @@ void impresume_list_experience_new(GtkTreeStore *treemodellist, GtkWidget *dialo
 				6, response_experience_dialog_cb,
                 -1);
 	printf("OK experience\n");
+}
+void impresume_list_designation_new(GtkTreeStore *treemodellist, GtkWidget *dialog)
+{
+	GtkTreeIter iter;
+
+	DESIGNATION *designation = malloc(sizeof(DESIGNATION));
+		designation->year = 2004;
+		designation->month = 12;
+		designation->day = 31;
+		designation->name = "Person of Humungous Dimensions";
+		designation->postnominal = "PhD.";
+		designation->grantingagency = "Someone";
+
+	gtk_tree_store_append (treemodellist, &iter, NULL);
+	gtk_tree_store_set (treemodellist, &iter,
+				0, NULL,
+                1, designation->name,
+				2, 700,			
+				3, designation,
+				4, dialog,
+				5, show_designation_dialog_cb,
+				6, response_designation_dialog_cb,
+                -1);
+	printf("OK designation\n");
+}
+void impresume_list_award_new(GtkTreeStore *treemodellist, GtkWidget *dialog)
+{
+	GtkTreeIter iter;
+
+	AWARD *award = malloc(sizeof(AWARD));
+		award->year = 2004;
+		award->month = 12;
+		award->day = 31;
+		award->name = "Person of Humungous award";
+		award->postnominal = "PhD.";
+		award->grantingagency = "Someone";
+
+	gtk_tree_store_append (treemodellist, &iter, NULL);
+	gtk_tree_store_set (treemodellist, &iter,
+				0, NULL,
+                1, award->name,
+				2, 700,			
+				3, award,
+				4, dialog,
+				5, show_award_dialog_cb,
+				6, response_award_dialog_cb,
+                -1);
+	printf("OK award\n");
 }
 void createstatusbar(GtkWidget *view, GtkWidget **statusbar)
 {
@@ -698,6 +1010,8 @@ gtk_tree_store_set (treemodel, &iter2,
                           -1);
 
 mainmodellist = initialize_standard_model();
+dialog = dialog_award_new(window);
+impresume_list_award_new(mainmodellist, dialog);
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "help-about",
@@ -742,6 +1056,9 @@ gtk_tree_store_set (treemodel, &iter2,
                           -1);
 
 mainmodellist = initialize_standard_model();
+dialog = dialog_designation_new(window);
+// Add content spectific stuff to it
+impresume_list_designation_new(mainmodellist, dialog);
 
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
@@ -772,6 +1089,7 @@ gtk_tree_store_set (treemodel, &iter,
 
 mainmodellist = initialize_standard_model();
 
+dialog = dialog_education_new(window);
 impresume_list_experience_new(mainmodellist, dialog);
 
 gtk_tree_store_append (treemodel, &iter2, &iter);
