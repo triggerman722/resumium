@@ -93,6 +93,18 @@ char *postnominal;
 	float amount;
 		
 } AWARD;
+
+typedef struct scholarship
+{
+	float amount;
+	char *name;
+	char *description;
+	char *grantingagency;
+	int year;
+	int month;
+	int day;
+} SCHOLARSHIP;
+
 // hackish?
 GtkWidget *viewtext;
 WebKitWebView *webView;
@@ -328,6 +340,72 @@ GtkWidget *dialog_award_new(GtkWidget *parent)
 
 	return newdialog;
 }
+
+GtkWidget *dialog_scholarship_new(GtkWidget *parent)
+{
+	GtkWidget *content_area;
+	GtkWidget *grid;
+	GtkWidget *label, *scholarship_name_entry, *scholarship_description_entry, *scholarship_grantingagency_entry;
+	GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
+	GtkWidget *newdialog;
+	newdialog = gtk_dialog_new_with_buttons ("Professional scholarships",
+                                      	GTK_WINDOW(parent),
+                                       flags,
+                                       "_OK",
+                                       GTK_RESPONSE_ACCEPT,
+                                       "_Cancel",
+                                       GTK_RESPONSE_REJECT,
+                                       NULL);
+	content_area = gtk_dialog_get_content_area (GTK_DIALOG (newdialog));
+	grid = gtk_grid_new ();
+	g_object_set (grid, "margin", 6, NULL);
+	gtk_grid_set_column_spacing (GTK_GRID (grid), 6);
+	gtk_grid_set_row_spacing (GTK_GRID (grid), 4);
+	gtk_box_pack_start (GTK_BOX (content_area), grid, TRUE, TRUE, 0);
+	gtk_widget_show (grid);
+	label = gtk_label_new ("Name:");
+	gtk_widget_set_halign (label, GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (grid), label, 0, 0, 1, 1);
+	scholarship_name_entry = gtk_entry_new ();
+	gtk_widget_set_hexpand (scholarship_name_entry, TRUE);
+	gtk_entry_set_icon_from_icon_name (GTK_ENTRY(scholarship_name_entry), GTK_ENTRY_ICON_PRIMARY, "mail-message-new");
+	gtk_grid_attach (GTK_GRID (grid), scholarship_name_entry,
+                   1, 0, 1, 1);
+ 
+	label = gtk_label_new ("Description:");
+	gtk_widget_set_halign (label, GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (grid), label, 0, 1, 1, 1);
+	scholarship_description_entry = gtk_entry_new ();
+	
+	gtk_widget_set_hexpand (scholarship_description_entry, TRUE);
+
+	gtk_entry_set_activates_default (GTK_ENTRY (scholarship_description_entry),
+                                   TRUE);
+	gtk_grid_attach (GTK_GRID (grid), scholarship_description_entry,
+		           1, 1, 1, 1);
+
+
+	label = gtk_label_new ("Granting Agency:");
+	gtk_widget_set_halign (label, GTK_ALIGN_END);
+	gtk_grid_attach (GTK_GRID (grid), label, 0, 2, 1, 1);
+	scholarship_grantingagency_entry = gtk_entry_new ();
+	
+	gtk_widget_set_hexpand (scholarship_grantingagency_entry, TRUE);
+
+	gtk_entry_set_activates_default (GTK_ENTRY (scholarship_grantingagency_entry),
+                                   TRUE);
+	gtk_grid_attach (GTK_GRID (grid), scholarship_grantingagency_entry,
+		           1, 2, 1, 1);
+
+	g_object_set_data(G_OBJECT(content_area), "scholarship_name_entry", scholarship_name_entry);
+	g_object_set_data(G_OBJECT(content_area), "scholarship_description_entry", scholarship_description_entry);
+	g_object_set_data(G_OBJECT(content_area), "scholarship_grantingagency_entry", scholarship_grantingagency_entry);
+
+	gtk_widget_show_all (content_area);
+
+	return newdialog;
+}
+
 gboolean treeselectionfunction (GtkTreeSelection *selection,
                          GtkTreeModel *model,
                          GtkTreePath *path,
@@ -569,6 +647,50 @@ static void response_designation_dialog_cb (GtkDialog *dialog, gint response_id,
 
 }
 
+static void show_scholarship_dialog_cb (GtkWidget *widget, gpointer   user_data)
+{
+	printf ("Scholarship show\n");
+	GtkWidget *content_area = gtk_dialog_get_content_area (GTK_DIALOG (widget));
+
+	// Because I am in a data specific handler, I can make assumptions about the dialog (such as: its the scholarship dialog)
+	GtkEntry *scholarship_description_entry = g_object_get_data (G_OBJECT (content_area), "scholarship_description_entry");
+
+	SCHOLARSHIP *medu;
+	medu = user_data;
+	gtk_entry_set_text(GTK_ENTRY (scholarship_description_entry), medu->description);
+}
+static void response_scholarship_dialog_cb (GtkDialog *dialog, gint response_id, gpointer user_data)
+{
+	printf ("Scholarship response\n");
+	switch (response_id)
+    {
+		case GTK_RESPONSE_ACCEPT:
+		{
+			//Need to extract the data back out of the dialog.
+			GtkWidget *content_area = gtk_dialog_get_content_area (dialog);
+			GtkEntry *scholarship_description_entry = g_object_get_data (G_OBJECT (content_area), "scholarship_description_entry");
+
+			char *szBuffer =  malloc(sizeof(char) * 255); 
+			strcpy(szBuffer,gtk_entry_get_text(GTK_ENTRY (scholarship_description_entry)));
+
+			// Need to assign it to the original data structure (or create new)
+
+			SCHOLARSHIP *medu;
+			medu = user_data; 
+			medu->description = szBuffer;
+
+			break;
+		}
+		default:
+         printf("Cancelled\n");
+         break;
+    }
+
+}
+
+
+
+
 static void view_onRowActivated(GtkTreeView        *treeview, GtkTreePath        *path,  GtkTreeViewColumn  *col,  gpointer            userdata)
 {
 
@@ -745,6 +867,32 @@ void impresume_list_award_new(GtkTreeStore *treemodellist, GtkWidget *dialog)
                 -1);
 	printf("OK award\n");
 }
+void impresume_list_scholarship_new(GtkTreeStore *treemodellist, GtkWidget *dialog)
+{
+	GtkTreeIter iter;
+
+	SCHOLARSHIP *scholarship = malloc(sizeof(SCHOLARSHIP));
+		scholarship->amount = 100.00;
+		scholarship->year = 2004;
+		scholarship->month = 12;
+		scholarship->day = 31;
+		scholarship->name = "Person of Humungous scholarship";
+		scholarship->description = "PhD.";
+		scholarship->grantingagency = "Someone";
+
+	gtk_tree_store_append (treemodellist, &iter, NULL);
+	gtk_tree_store_set (treemodellist, &iter,
+				0, NULL,
+                1, scholarship->name,
+				2, 700,			
+				3, scholarship,
+				4, dialog,
+				5, show_scholarship_dialog_cb,
+				6, response_scholarship_dialog_cb,
+                -1);
+	printf("OK scholarship\n");
+}
+
 void createstatusbar(GtkWidget *view, GtkWidget **statusbar)
 {
 	char buff[20];
@@ -1026,7 +1174,8 @@ gtk_tree_store_set (treemodel, &iter2,
                           -1);
 
 mainmodellist = initialize_standard_model();
-
+dialog = dialog_scholarship_new(window);
+impresume_list_scholarship_new(mainmodellist, dialog);
 gtk_tree_store_append (treemodel, &iter2, &iter);
 gtk_tree_store_set (treemodel, &iter2,
 			0, "mail-message-new",
