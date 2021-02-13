@@ -7,7 +7,7 @@
 			`xml2-config --libs` \
 			`xslt-config --cflags` \
 			`xslt-config --libs` \
-			`pkg-config --cflags --libs webkit2gtk-3.0`
+			`pkg-config --cflags --libs webkit2gtk-4.0`
 */
 
 // to build: gcc `pkg-config --cflags gtk+-3.0` -o example-1 example-1.c `pkg-config --libs gtk+-3.0` `xml2-config --cflags` `xml2-config --libs` `xslt-config --cflags` `xslt-config --libs`
